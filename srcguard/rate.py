@@ -48,6 +48,13 @@ class HostRateLimiter:
     blocked_counts: dict[str, int] = field(default_factory=dict)
     blocked_hits: dict[str, list[float]] = field(default_factory=dict)
     blocked_window_s: float = 60.0
+    # Per-path 403/429: a path that keeps being refused is a dead end, while 403s
+    # scattered over different paths are usually "wrong method / needs session"
+    # and must not stop a scan before the agent can adapt.
+    blocked_path_hits: dict[str, list[float]] = field(default_factory=dict)
+    blocked_paths_window_s: float = 300.0
+    blocked_same_path: int = 8
+    slow_down: int = 0
     max_violations: int = 3
     max_blocked: int = 5
     log_path: Path | None = None
@@ -71,23 +78,81 @@ class HostRateLimiter:
         with self.log_path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(row, ensure_ascii=False) + "\n")
 
-    def check(self, host: str, *, now: float | None = None, status: int | None = None) -> str | None:
+    def check(
+        self,
+        host: str,
+        *,
+        now: float | None = None,
+        status: int | None = None,
+        path: str | None = None,
+    ) -> str | None:
         """Return a kill reason when the host exceeded the limit, else None."""
         now = time.time() if now is None else now
         if status in {403, 429}:
-            # "Consecutive" blocks: a few 403s spread over the scan (WAF rejecting
-            # individual probes) must not stop the run; a burst within the window
-            # does.
+            path = (path or "/").split("?", 1)[0] or "/"
+            cutoff = now - self.blocked_paths_window_s
+            per_path = self.blocked_path_hits.setdefault(path, [])
+            per_path.append(now)
+            per_path[:] = [stamp for stamp in per_path if stamp >= cutoff]
+            # Global counter is kept for reporting only; it no longer decides.
             hits = self.blocked_hits.setdefault(host, [])
             hits.append(now)
-            cutoff = now - self.blocked_window_s
-            hits[:] = [stamp for stamp in hits if stamp >= cutoff]
+            global_cutoff = now - self.blocked_window_s
+            hits[:] = [stamp for stamp in hits if stamp >= global_cutoff]
             self.blocked_counts[host] = len(hits)
-            self._write(
-                {"host": host, "event": "blocked", "status": status, "count": len(hits), "ts": now}
-            )
+
+            homepage = path in {"/", "/index.html", "/index.htm", "/index.jsp"}
+            if homepage:
+                self._write(
+                    {
+                        "host": host,
+                        "event": "blocked",
+                        "status": status,
+                        "path": path,
+                        "scope": "homepage",
+                        "count": len(hits),
+                        "ts": now,
+                    }
+                )
+                return f"waf_banned:{host}"
+            if len(per_path) >= self.blocked_same_path:
+                self._write(
+                    {
+                        "host": host,
+                        "event": "blocked",
+                        "status": status,
+                        "path": path,
+                        "scope": "same_path",
+                        "count": len(per_path),
+                        "ts": now,
+                    }
+                )
+                return f"repeated_{status}:{host}:{path}"
             if len(hits) >= self.max_blocked:
+                self._write(
+                    {
+                        "host": host,
+                        "event": "blocked",
+                        "status": status,
+                        "path": path,
+                        "scope": "global",
+                        "count": len(hits),
+                        "ts": now,
+                    }
+                )
                 return f"repeated_{status}:{host}"
+            self.slow_down += 1
+            self._write(
+                {
+                    "host": host,
+                    "event": "slow_down",
+                    "status": status,
+                    "path": path,
+                    "path_count": len(per_path),
+                    "global_count": len(hits),
+                    "ts": now,
+                }
+            )
             return None
         hits = self.hits.setdefault(host, [])
         hits.append(now)

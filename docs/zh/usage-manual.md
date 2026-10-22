@@ -203,8 +203,19 @@ methods:
 
 ```yaml
 rate: {default_rps: 1, burst_rps: 15}
-limits: {max_blocked: 15}    # 60 秒窗口内 403/429 达到该数才停
+limits:
+  max_blocked: 12             # 全局兜底：60 秒窗口内 403/429 总数到该值才停
+  blocked_same_path: 8        # 同一路径 300 秒内被拒 8 次 → 判死路
+  blocked_paths_window_s: 300 # 按路径统计的窗口
 ```
+
+403 的三种归宿（v2 规则）：
+
+| 情况 | 处置 |
+|---|---|
+| 不同路径分散的 403（多为"方法不对/要会话"） | 记 `slow_down`，**不停**，让 Strix 换姿势 |
+| 同一路径持续 403 | `repeated_403:<host>:<path>`，停 |
+| 首页 `/` 或 `/index.*` 返回 403/429 | `waf_banned:<host>`，立即停（真被封的金标准） |
 
 WAF 重的站点（探测 `.git`、`.env` 必 403）：`max_blocked` 调到 20–40，速率降到 1 rps。
 

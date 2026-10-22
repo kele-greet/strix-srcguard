@@ -142,6 +142,8 @@ def launch(
         default_rps=compiled.default_rps,
         burst_rps=compiled.burst_rps,
         max_blocked=compiled.max_blocked,
+        blocked_same_path=compiled.blocked_same_path,
+        blocked_paths_window_s=compiled.blocked_paths_window_s,
         log_path=spec.run_dir / "audit" / "rate.jsonl",
     )
     new_rate, new_burst = global_new_connection_rate(compiled.default_rps, compiled.burst_rps)

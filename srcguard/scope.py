@@ -61,6 +61,8 @@ class ScopePolicy:
     default_rps: int = 5
     burst_rps: int = 50
     max_blocked: int = 5
+    blocked_same_path: int = 8
+    blocked_paths_window_s: int = 300
     max_requests_per_host: int = 0
     web_search_enabled: bool = False
     raw: dict[str, Any] = field(default_factory=dict)
@@ -233,6 +235,8 @@ def load_scope(path: str | Path) -> ScopePolicy:
         default_rps=int(rate.get("default_rps", 5)),
         burst_rps=int(rate.get("burst_rps", 50)),
         max_blocked=int(limits.get("max_blocked", 5)),
+        blocked_same_path=int(limits.get("blocked_same_path", 8)),
+        blocked_paths_window_s=int(limits.get("blocked_paths_window_s", 300)),
         max_requests_per_host=int(raw.get("max_requests_per_host", limits.get("max_requests_per_host", 0))),
         web_search_enabled=bool(web_search.get("enabled", False)),
         raw=raw,
@@ -427,6 +431,8 @@ class CompiledPolicy:
     default_rps: int
     burst_rps: int
     max_blocked: int
+    blocked_same_path: int
+    blocked_paths_window_s: int
     max_requests_per_host: int
     ssrf: dict[str, Any]
     oob: dict[str, Any]
@@ -465,6 +471,8 @@ class CompiledPolicy:
                 "default_rps": self.default_rps,
                 "burst_rps": self.burst_rps,
                 "max_blocked": self.max_blocked,
+                "blocked_same_path": self.blocked_same_path,
+                "blocked_paths_window_s": self.blocked_paths_window_s,
             },
             "max_requests_per_host": self.max_requests_per_host,
             "ssrf_probe": self.ssrf,
@@ -531,6 +539,8 @@ def compile_policy(
             "default_rps": policy.default_rps,
             "burst_rps": policy.burst_rps,
             "max_blocked": policy.max_blocked,
+            "blocked_same_path": policy.blocked_same_path,
+            "blocked_paths_window_s": policy.blocked_paths_window_s,
         },
         "max_requests_per_host": policy.max_requests_per_host,
         "ssrf_probe": ssrf,
@@ -555,6 +565,8 @@ def compile_policy(
         default_rps=policy.default_rps,
         burst_rps=policy.burst_rps,
         max_blocked=policy.max_blocked,
+        blocked_same_path=policy.blocked_same_path,
+        blocked_paths_window_s=policy.blocked_paths_window_s,
         max_requests_per_host=policy.max_requests_per_host,
         ssrf=ssrf,
         oob=oob,

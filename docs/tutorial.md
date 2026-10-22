@@ -14,7 +14,7 @@ export PYTHONPATH=.
 ## 0. Check the machine
 
 ```bash
-uv run pytest -q        # 149 tests
+uv run pytest -q        # 153 tests
 ./check_strix.sh        # zero-diff guard (skips if no local strix-main)
 ```
 

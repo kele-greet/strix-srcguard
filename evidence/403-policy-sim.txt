@@ -1,0 +1,10 @@
+scattered: [None, None, None, None, None] slow_down= 5
+same path: repeated_403:t:/initSearch.rst
+homepage: waf_banned:t
+--- rate.jsonl events ---
+{'host': 't', 'event': 'slow_down', 'status': 403, 'path': '/p0', 'path_count': 1, 'global_count': 1, 'ts': 0}
+{'host': 't', 'event': 'slow_down', 'status': 403, 'path': '/p1', 'path_count': 1, 'global_count': 2, 'ts': 1}
+{'host': 't', 'event': 'slow_down', 'status': 403, 'path': '/p2', 'path_count': 1, 'global_count': 3, 'ts': 2}
+{'host': 't', 'event': 'slow_down', 'status': 403, 'path': '/p3', 'path_count': 1, 'global_count': 4, 'ts': 3}
+{'host': 't', 'event': 'slow_down', 'status': 403, 'path': '/p4', 'path_count': 1, 'global_count': 5, 'ts': 4}
+{'host': 't', 'event': 'slow_down', 'status': 403, 'path': '/initSearch.rst', 'path_count': 1, 'global_count': 1, 'ts': 0}

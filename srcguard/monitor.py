@@ -211,7 +211,10 @@ def watch(
                         else None
                     )
                     reason = limiter.check(
-                        host, now=when, status=status if isinstance(status, int) else None
+                        host,
+                        now=when,
+                        status=status if isinstance(status, int) else None,
+                        path=path,
                     )
                     if reason:
                         kill.trip(reason, proc)

@@ -12,7 +12,7 @@ export PYTHONPATH=.
 ## 0. 检查环境
 
 ```bash
-uv run pytest -q        # 149 tests
+uv run pytest -q        # 153 tests
 ./check_strix.sh        # 本地有 strix-main 时校验零改动
 ```
 

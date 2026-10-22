@@ -116,7 +116,7 @@ jq .status $D/strix_runs/*/run.json       # stopped = 可续；completed = 已�
 |---|---|---|
 | `stopped` + `budget exceeded` | 预算停车 | 第 7 步加预算续跑 |
 | `completed` + `finish_scan` | 正常结束 | 第 8 步审计 |
-| `kill.json` 存在 | guard 介入 | 看 reason；403 就降速/提 `max_blocked`，越权就查 scope |
+| `kill.json` 存在 | guard 介入 | 看 reason：`waf_banned`=首页被封（停手等冷却）；`repeated_403:...:<path>`=该路径死路；`repeated_403:<host>`=全局 403 超 `max_blocked`；越权就查 scope |
 
 ## 7. 加预算续跑（同一 run）
 
@@ -167,7 +167,7 @@ cp evidence/real-target/<host>.md /mnt/d/srcguard-acceptance/real-target/
 
 - [ ] 只碰授权 host；子域/旁站只是线索
 - [ ] DELETE/PUT/PATCH 没发出；POST 只在允许范围
-- [ ] 速率 ≤ 1–2 rps；403 连续就降速
+- [ ] 速率 ≤ 1–2 rps；分散 403 只降速（`slow_down`），首页 403 立即停
 - [ ] 不绕 WAF；不用真实账号；OOB 只带 token
 - [ ] cookie 只存在 0600 文件，测完作废
 - [ ] 有 `compliance.md` + 报告 + 授权截图

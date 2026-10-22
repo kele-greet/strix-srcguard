@@ -70,7 +70,7 @@ instruction text, turn/budget caps, optional `--caido-tamper` (rewrites a denied
 optional `--docker-proxy` (drops sandbox privileges). Everything else is passive.
 
 > Early versions of the guard did interrupt scans (an empty DNS allow-set, an inverted rate rule).
-> Those were bugs, not design limits; each is fixed and covered by the 149-test suite.
+> Those were bugs, not design limits; each is fixed and covered by the 153-test suite.
 
 ---
 

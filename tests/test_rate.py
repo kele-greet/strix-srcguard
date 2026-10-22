@@ -42,19 +42,50 @@ class RateTests(unittest.TestCase):
                 break
         self.assertEqual(reason, "rate_exceeded:a.test")
 
-    def test_blocked_statuses(self) -> None:
-        limiter = HostRateLimiter(default_rps=5, burst_rps=5, max_blocked=2)
-        self.assertIsNone(limiter.check("a.test", status=403))
-        self.assertEqual(limiter.check("a.test", status=403), "repeated_403:a.test")
+    def test_same_path_repeated_403_kills(self) -> None:
+        limiter = HostRateLimiter(max_blocked=99, blocked_same_path=3)
+        for _ in range(2):
+            self.assertIsNone(limiter.check("a.test", status=403, path="/api/x"))
+        self.assertEqual(
+            limiter.check("a.test", status=403, path="/api/x"), "repeated_403:a.test:/api/x"
+        )
+
+    def test_scattered_403s_only_slow_down(self) -> None:
+        limiter = HostRateLimiter(max_blocked=99, blocked_same_path=8)
+        for i in range(5):
+            self.assertIsNone(limiter.check("a.test", status=403, path=f"/p{i}"))
+        self.assertGreaterEqual(limiter.slow_down, 5)
+
+    def test_homepage_403_is_a_ban(self) -> None:
+        limiter = HostRateLimiter()
+        self.assertEqual(limiter.check("a.test", status=403, path="/"), "waf_banned:a.test")
+        self.assertEqual(limiter.check("a.test", status=429, path="/index.html"), "waf_banned:a.test")
+
+    def test_path_window_expires(self) -> None:
+        limiter = HostRateLimiter(blocked_same_path=3, blocked_paths_window_s=10, max_blocked=99)
+        self.assertIsNone(limiter.check("a.test", status=403, path="/x", now=0))
+        self.assertIsNone(limiter.check("a.test", status=403, path="/x", now=5))
+        self.assertIsNone(limiter.check("a.test", status=403, path="/x", now=50))
+        self.assertIsNone(limiter.check("a.test", status=403, path="/x", now=51))
+
+    def test_global_threshold_still_backstops(self) -> None:
+        limiter = HostRateLimiter(max_blocked=5, blocked_same_path=99)
+        for i in range(4):
+            self.assertIsNone(limiter.check("a.test", status=403, path=f"/p{i}"))
+        self.assertEqual(limiter.check("a.test", status=403, path="/p4"), "repeated_403:a.test")
 
     def test_spread_out_403s_do_not_stop_the_run(self) -> None:
         limiter = HostRateLimiter(max_blocked=5, blocked_window_s=60)
-        for minute in (0, 30, 60, 120, 130):
-            self.assertIsNone(limiter.check("a.test", now=minute, status=403))
+        for index, minute in enumerate((0, 30, 60, 120, 130)):
+            self.assertIsNone(
+                limiter.check("a.test", now=minute, status=403, path=f"/p{index}")
+            )
         # A burst inside one minute still stops it.
         for i in range(5):
-            limiter.check("b.test", now=1000 + i, status=403)
-        self.assertEqual(limiter.check("b.test", now=1005, status=403), "repeated_403:b.test")
+            limiter.check("b.test", now=1000 + i, status=403, path=f"/p{i}")
+        self.assertEqual(
+            limiter.check("b.test", now=1005, status=403, path="/p5"), "repeated_403:b.test"
+        )
 
     def test_global_cap(self) -> None:
         self.assertEqual(global_new_connection_rate(5, 50), (50, 100))
