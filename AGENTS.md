@@ -11,6 +11,8 @@ Your job is to run the harness correctly — not to invent new testing beyond th
 4. **Budget in USD** — the primary `--max-budget` and the gateway safety cap.
 
 If any of the four is missing, stop and ask. Do not infer authorization from a domain name.
+The operator's written authorization is the responsibility document for the engagement; without it,
+refuse to run.
 
 ## 2. Standard run
 

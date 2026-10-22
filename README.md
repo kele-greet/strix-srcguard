@@ -105,6 +105,33 @@ Never commit it. The sandbox image is pulled by Strix itself.
 - Agent contract: [AGENTS.md](AGENTS.md)
 - Run SOP / manual / architecture (Chinese): [docs/zh/](docs/zh/)
 
+---
+
+## Authorization & responsibility — read this first
+
+SRCGuard is a tool, not an authorization. It cannot verify that you are allowed to test a target.
+
+**Putting a host into `in_scope` is your signed statement for that engagement.** By doing so you
+declare that you hold explicit, written permission from the asset owner, that you accept
+responsibility for every request made inside that scope, and that you accept the consequences if
+that permission does not exist. Keep the written authorization (email, ticket, contract) together
+with the run artifacts — the scope file plus that proof is the responsibility document.
+
+Plan for these problems before you run:
+
+- **False negatives** — no finding does not mean the target is safe; coverage gaps are reported as gaps.
+- **False positives** — agent findings can be wrong; verify manually before reporting to anyone.
+- **Target impact** — even at 1 rps, probes can trip a WAF/IDS, get your IP banned, or disturb a fragile service.
+- **Data exposure** — in-scope reads may return real user data or PII; minimizing and handling it is your responsibility.
+- **Agent misjudgement** — autonomous agents can attempt out-of-scope or state-changing actions; the cage and guards block or record them, but no guard catches every attempt.
+- **Residue** — registration/upload tests may leave test data behind; remove it or disclose it in the report.
+- **Budget** — LLM usage costs money; caps are safety nets, not a guarantee of a fixed bill.
+- **Third parties** — Strix, Caido, Cloudflare tunnels, container images and the LLM provider are external dependencies with their own terms, availability and risks.
+- **Legal** — unauthorized testing is a criminal offence in many jurisdictions. This project provides no legal advice.
+
+No warranty. MIT license. The authors are not responsible for misuse or for damage caused by
+runs you authorized.
+
 ## Honest boundaries
 
 - The nft cage is the **only hard network boundary**; method/path rules are command-level or
