@@ -209,6 +209,50 @@ attempts (blocked vs. successful), write requests, evidence cross-checks, and PI
 
 ---
 
+---
+
+## Capability impact, in numbers
+
+SRCGuard lives at the boundary, not in the agent loop. It does not choose tools, endpoints or
+payloads, does not rewrite findings, and does not touch in-scope traffic beyond recording it.
+
+Data from **15 completed authorized runs** (Strix 1.7.0, quick mode, guard on):
+
+| Metric | Observed |
+|---|---|
+| HTTP requests / responses | **2,263 / 1,606** |
+| Surfaces reviewed / open gaps | **265 / 119** |
+| Write requests (POST etc.) | **492 allowed and logged** (`writes.jsonl`) |
+| Out-of-scope attempts dropped by the cage | **43** (`blocked.jsonl`, third-party/CDN only) |
+| Findings produced by Strix under the guard | **3**, two manually confirmed |
+| Guard kills in completed runs | **0** |
+| Policy block added per LLM call | ~70–100 tokens against a 60–80K context → **<0.2%** |
+
+What this shows:
+
+- the agent kept its normal volume and surface coverage (71–261 requests and 14–30 surfaces per
+  run) while the harness was active;
+- the guard touched **edge traffic only**: a few dozen out-of-scope packets per engagement, while
+  hundreds of in-scope writes went through untouched and were recorded;
+- Strix still **found real issues under the guard** (CWE-209 stack-trace disclosure, CWE-639
+  unauthenticated attachment IDOR), which is the strongest evidence that capability is preserved.
+
+The only intentional behaviour changes are policy choices, not interception:
+
+| Change | Type | Can be disabled |
+|---|---|---|
+| Instruction text (scope, methods, rate, data rules) | prompt constraint | edit the template |
+| `--max-turns` / `--max-budget` | budget | raise them |
+| `--caido-tamper` (denied method → GET) | traffic rewrite | omit the flag |
+| `--docker-proxy` (drop NET_ADMIN, reject privileged) | sandbox capability | omit the flag |
+
+Everything else — Caido observation, nft accept/rate rules, gateway metering, audit — is passive
+or boundary-only. The network path for in-scope traffic is unchanged: one accept rule in the
+kernel, and Caido is already part of Strix's default stack (SRCGuard only reads from it).
+
+> Early versions of the guard did break scans (empty DNS allow-set, an inverted rate rule). Those
+> were bugs, not design limits; each is fixed and covered by the 149 tests.
+
 ## Honest boundaries
 
 - **The nft cage is the only hard network boundary.** Method and path rules are command-level or
