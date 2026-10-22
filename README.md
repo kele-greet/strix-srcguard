@@ -1,35 +1,67 @@
 # SRCGuard
 
-**A compliance-first SRC / bug-bounty harness for [Strix](https://github.com/usestrix/strix).**
+**A compliance-first SRC / bug-bounty harness you can hand to an AI agent.**
 
-SRCGuard wraps Strix 1.7.0 from the outside — **zero changes to `strix-main`**. It gives Strix a
-scope cage, an LLM gateway with policy injection and hard budget control, and an evidence trail
-you can hand to a program owner.
+SRCGuard wraps [Strix](https://github.com/usestrix/strix) 1.7.0 from the outside — **zero changes
+to `strix-main`** — so an autonomous agent can hunt real, authorized targets without leaving the
+scope you declared. Scope is enforced in the kernel. Every request, write and blocked attempt is
+recorded. Budgets stop on a clean boundary and can be topped up.
 
-> Only use this against systems you are explicitly authorized to test. SRCGuard enforces the
-> scope you declare; it does not grant authorization.
+> **This project does not grant authorization.** It enforces the scope *you* declare. Use it only
+> against systems you are explicitly and verifiably authorized to test.
+>
+> [中文说明](README.zh-CN.md)
 
 ---
 
-## What it solves
+## Why this exists
 
-Strix is powerful, but pointing it at a real SRC target has three problems:
+Pointing an autonomous agent at a real SRC target raises three questions that a prompt alone
+cannot answer:
 
-1. **Scope** — the model may wander into newly discovered subdomains, sibling sites, CDNs or SaaS.
-2. **Actions** — DELETE, bulk data pulls, stress, or credentials leaving the sandbox.
-3. **Evidence** — "I sent GET / and got 200" is a claim; the report needs to be reproducible.
+1. **Scope** — will it wander into a newly discovered subdomain, a sibling site, a CDN, or SaaS?
+2. **Blast radius** — will it DELETE, bulk-export, stress, or carry credentials out of the sandbox?
+3. **Evidence** — when the report says "GET / returned 200", can you prove it to the program owner?
 
-SRCGuard's answer:
+SRCGuard answers them **outside** the agent:
 
-| Layer | What it does |
-|---|---|
-| **L3 cage** | Per-run nftables table; only IPs resolved from the declared scope can leave. RFC1918 / link-local / metadata are blackholed. Per-host new-connection rate limits. |
-| **L1 instruction** | Generates the SRC discipline brief Strix receives (scope, allowed methods, rate, data rules). Sub-agents do not inherit it, so the cage is the backstop. |
-| **L2 gateway** | Injects a `<srcguard_policy>` block into every LLM call, redacts credential-like tool output, meters usage, and enforces a hard `--max-cost` / `--max-tokens` cap. |
-| **Evidence** | Caido observer, nft egress log, write-request log, blocked-attempt log, OOB callbacks, MCP command log, and an audit report (`compliance.md`). |
+| Layer | Mechanism | Guarantee |
+|---|---|---|
+| **Scope cage** | per-run nftables table; only IPs resolved from the declared scope may egress | hard (kernel) |
+| **Metadata guard** | RFC1918 / link-local / cloud metadata are blackholed | hard (kernel) |
+| **Rate & burst** | per-host and global new-connection limits | hard (kernel) |
+| **Command guard** | MCP `sandbox_exec` checks methods, POST paths, command quotas | soft (command level) |
+| **LLM gateway** | policy injection into every model call, credential redaction, usage metering, hard budget cap | soft + accounting |
+| **Evidence** | Caido observer, egress log, write log, blocked-attempt log, OOB callbacks, compliance report | read-only |
 
-SRCGuard does **not** plan tests, choose payloads, or filter findings. Strix does the hunting;
-SRCGuard constrains the boundaries and records what happened.
+The agent still does the hunting. SRCGuard does not pick targets, payloads, or findings — it
+constrains the boundary and records what crossed it.
+
+---
+
+## Hand it to an AI agent
+
+This repository is written to be operated by an AI coding agent. Put the repo in front of your
+agent and paste:
+
+```text
+You are operating SRCGuard, an external compliance harness around Strix.
+Read AGENTS.md and README.md first.
+
+Before doing anything, ask me for:
+  1) written authorization for the target,
+  2) the exact in-scope hosts (no wildcards unless I say so),
+  3) allowed methods and rate limits,
+  4) the budget in USD.
+
+Then follow docs/zh/run-sop.md: check → gateway → dry-run → launch → audit.
+Never widen the scope. Never claim a target is "safe" — report what was tested, what was
+blocked, and what remains a gap. If a run stops at its budget, resume it with a higher
+--max-budget instead of starting over.
+```
+
+`AGENTS.md` is the operating contract (scope, stop rules, budget, evidence, reporting) and is
+picked up automatically by most agent runtimes.
 
 ---
 
@@ -52,32 +84,102 @@ Strix agents
                                                      │
                                               host NAT → internet
 
-LLM path:  Strix ──► srcguard gateway ──► provider
+LLM path:  Strix ──► SRCGuard gateway ──► provider
                         ├ policy injection
-                        ├ secret redaction
+                        ├ credential redaction
                         ├ usage metering
-                        └ budget cap → 429
+                        └ hard budget cap → 429
 ```
 
 ---
 
 ## Quick start
 
-### 1. Requirements
+### Requirements
 
 - Linux with Docker (WSL2 verified).
-- Strix 1.7.0 binary (not bundled here).
+- Strix 1.7.0 binary (not bundled — see below).
 - Python 3.10+ with `pyyaml`, `httpx`, `pytest` (or `uv`).
 
 ```bash
-uv run pytest -q        # 149 passed
-./check_strix.sh        # verifies strix-main is untouched
+uv run pytest -q        # 149 tests
+./check_strix.sh        # zero-diff guard when a local strix-main exists
 ```
 
-### 2. Write a scope
+### Where Strix goes
+
+Download the Strix 1.7.0 binary from its releases and place it anywhere, e.g.:
+
+```bash
+mkdir -p ~/tools && mv strix-1.7.0-linux-x86_64 ~/tools/strix-1.7.0
+chmod +x ~/tools/strix-1.7.0
+```
+
+Never commit it (`.gitignore` covers `strix-*`). Point SRCGuard at it either way:
+
+```bash
+python3 -m srcguard.cli run ... --strix-bin ~/tools/strix-1.7.0 --launch
+# or
+export STRIX_BIN=~/tools/strix-1.7.0
+```
+
+Under the hood SRCGuard launches (printable with `--dry-run`):
+
+```
+strix -n -t <target> --scan-mode quick --max-turns N --max-budget M \
+      --instruction-file <run>/instruction.md \
+      --mcp-config <run>/mcp-servers.json
+```
+
+The sandbox image (`ghcr.io/usestrix/strix-sandbox:1.3.0`) is pulled by Strix itself.
+
+### The four commands
+
+```bash
+# 1) validate the scope
+python3 -m srcguard.cli check --scope /tmp/proj-scope.yaml
+
+# 2) start the LLM gateway (safety net; keep it running)
+python3 -m srcguard.cli gateway \
+  --upstream https://api.deepseek.com/v1/chat/completions \
+  --policy "Authorized scope: only the host in scope. GET/HEAD + POST open, no DELETE/PUT/PATCH. 1 rps." \
+  --model deepseek-flash --listen-port 8797 \
+  --price-input 0.28 --price-cached 0.07 --price-output 1.10 \
+  --max-cost 3 --max-tokens 20000000
+
+# 3) run inside the cage
+python3 -m srcguard.cli run \
+  --scope /tmp/proj-scope.yaml --target https://www.example.edu.cn/ \
+  --max-turns 20 --max-budget 2 --budget-model openai/gpt-4o-mini \
+  --gateway-base http://127.0.0.1:8797/v1 \
+  --strix-bin ~/tools/strix-1.7.0 --out-dir srcguard_runs/example --launch
+
+# 4) audit
+python3 -m srcguard.cli audit --run srcguard_runs/example/<run_id> --scope /tmp/proj-scope.yaml
+```
+
+Add `--dry-run` instead of `--launch` to print the Strix argv without any network traffic or spend.
+
+### Two budgets, one clean stop
+
+| Control | Flag | Behaviour |
+|---|---|---|
+| Strix budget (primary) | `--max-budget` + `--budget-model openai/gpt-4o-mini` | stops at the limit with agents in `stopped` state — **resumable** |
+| Gateway cap (safety net) | `--max-cost` / `--max-tokens` | hard stop at 1.5–2× the primary budget; returns 429 |
+
+`--budget-model` lets Strix price its spend (LiteLLM has no price for `deepseek-flash`), while the
+gateway rewrites the upstream model to the real one. When the budget stops the run, continue the
+same run:
+
+```bash
+python3 -m srcguard.cli run --resume <run_id> --scope /tmp/proj-scope.yaml \
+  --max-turns 20 --max-budget 4 --budget-model openai/gpt-4o-mini \
+  --gateway-base http://127.0.0.1:8797/v1 --launch
+```
+
+### Scope example
 
 ```yaml
-# /tmp/proj-scope.yaml
 program: my-src
 in_scope: ["www.example.edu.cn"]
 methods:
@@ -92,143 +194,41 @@ web_search: {enabled: false}
 budgets: {max_turns: 20, max_budget_usd: 2}
 ```
 
-```bash
-python3 -m srcguard.cli check --scope /tmp/proj-scope.yaml
-```
+---
 
-### 3. Start the LLM gateway
-
-```bash
-python3 -m srcguard.cli gateway \
-  --upstream https://api.deepseek.com/v1/chat/completions \
-  --policy "Authorized scope: only the host in scope. GET/HEAD + POST open, no DELETE/PUT/PATCH. 1 rps." \
-  --model deepseek-flash --listen-port 8797 \
-  --price-input 0.28 --price-cached 0.07 --price-output 1.10 \
-  --max-cost 3 --max-tokens 20000000
-```
-
-The gateway cap is a safety net. Use **Strix's own budget** as the control:
-`--max-budget` + `--budget-model openai/gpt-4o-mini` makes Strix stop cleanly at the limit,
-and `--resume` with a higher budget continues the same run.
-
-### 4. Run
-
-```bash
-python3 -m srcguard.cli run \
-  --scope /tmp/proj-scope.yaml --target https://www.example.edu.cn/ \
-  --max-turns 20 --max-budget 2 --budget-model openai/gpt-4o-mini \
-  --gateway-base http://127.0.0.1:8797/v1 \
-  --strix-bin /path/to/strix-1.7.0 \
-  --out-dir srcguard_runs/example --launch
-```
-
-Add `--dry-run` instead of `--launch` to only print the Strix argv (no network traffic, no spend).
-
-### 5. Continue when the budget stops it
-
-```bash
-python3 -m srcguard.cli run --resume <run_id> --scope /tmp/proj-scope.yaml \
-  --max-turns 20 --max-budget 4 --budget-model openai/gpt-4o-mini \
-  --gateway-base http://127.0.0.1:8797/v1 --launch
-```
-
-### 6. Audit
-
-```bash
-python3 -m srcguard.cli audit --run srcguard_runs/example/<run_id> --scope /tmp/proj-scope.yaml
-cat srcguard_runs/example/<run_id>/compliance.md
-```
-
-A run directory contains:
+## What a run leaves behind
 
 ```
 policy.json  instruction.md  mcp-servers.json  usage.json  compliance.md
-audit/{caido,egress,writes,blocked,oob,rate,method}.jsonl  audit/mcp.log
+audit/{caido,egress,writes,blocked,oob,rate,method}.jsonl   audit/mcp.log
 strix_runs/<name>/{penetration_test_report.md, vulnerabilities/, coverage.json}
 ```
 
----
-
-## Using SRCGuard with Strix
-
-### Where does Strix go?
-
-SRCGuard does **not** bundle Strix. Get the Strix 1.7.0 binary from its releases
-(<https://github.com/usestrix/strix/releases>) and put it anywhere on the machine, e.g.:
-
-```bash
-mkdir -p ~/tools && mv strix-1.7.0-linux-x86_64 ~/tools/strix-1.7.0
-chmod +x ~/tools/strix-1.7.0
-```
-
-Never commit the binary (it is in `.gitignore` as `strix-*`).
-
-### How SRCGuard uses it
-
-Two equivalent ways to point SRCGuard at the binary:
-
-```bash
-# per run
-python3 -m srcguard.cli run ... --strix-bin ~/tools/strix-1.7.0 --launch
-
-# or via environment
-export STRIX_BIN=~/tools/strix-1.7.0
-python3 -m srcguard.cli run ... --launch
-```
-
-Under the hood SRCGuard launches (and prints with `--dry-run`):
-
-```
-strix -n -t <target> --scan-mode quick --max-turns N --max-budget M       --instruction-file <run>/instruction.md       --mcp-config <run>/mcp-servers.json
-```
-
-with `STRIX_RUN_ID`, `HOME`, `LLM_API_BASE` (the gateway) and the MCP shim set in the child
-environment. The sandbox image (`ghcr.io/usestrix/strix-sandbox:1.3.0`) is pulled by Strix
-itself on first run.
-
-### Verify the wrapper stays external
-
-```bash
-./check_strix.sh
-```
-
-If you keep a local `strix-main` checkout next to this repo, the script verifies its zero-diff
-hash; without it the script just reports that there is nothing to compare.
+`compliance.md` is the report you hand to a program owner: contacted hosts, out-of-scope
+attempts (blocked vs. successful), write requests, evidence cross-checks, and PII/secret hits.
 
 ---
 
-## Data hygiene (this repository is desensitized)
+## Honest boundaries
 
-- No real-target findings are published here. `evidence/` contains only local-lab proofs
-  (Juice Shop / localhost), and the real-target runs were kept out of the public snapshot.
-- Run directories (`srcguard_runs/`), gateway logs, cookies and API keys are gitignored and
-  must stay private.
-- If you publish your own results, redact hostnames, tokens and unpatched vulnerability details
-  until the program owner has fixed them.
-
----
-
-## Repository layout
-
-```
-srcguard/          # cage, gateway, monitor, observer, preflight, audit
-tests/             # 149 unit/integration tests
-samples/           # local lab scope
-scripts/           # balance_gate, CI helpers
-docs/zh/           # Chinese manual, run SOP, architecture, security baseline
-evidence/          # local-lab proofs (no real-target findings)
-```
-
-## Safety boundaries (honest list)
-
-- The **nft cage is the only hard network boundary**; method/path rules are command-level or
-  post-hoc (Caido in this version cannot drop a request).
+- **The nft cage is the only hard network boundary.** Method and path rules are command-level or
+  post-hoc; Caido in this version cannot drop a request.
 - `--caido-tamper` **rewrites** denied methods to GET (a downgrade, not a drop).
-- `--docker-proxy` restricts sandbox capabilities (no NET_ADMIN, no privileged/host netns).
-- Out-of-scope hosts that the cage drops are recorded as `blocked_attempt`, not killed.
-- No authoritative DNS OOB (HTTP callbacks only).
-- `strix-main` is never modified (`check_strix.sh` enforces a zero diff).
+- `--docker-proxy` restricts sandbox capabilities (no `NET_ADMIN`, no privileged/host netns).
+- Out-of-scope hosts dropped by the cage are recorded as `blocked_attempt`, not killed.
+- No authoritative DNS OOB; HTTP callbacks only.
+- `strix-main` is never modified (`check_strix.sh` enforces the zero diff).
+
+## Data hygiene
+
+This repository is desensitized:
+
+- no real-target findings are published; `evidence/` contains local-lab proofs only;
+- run directories, gateway logs, cookies and API keys are gitignored and stay private;
+- if you publish your own results, redact hostnames, tokens and unpatched vulnerability details
+  until the program owner has fixed them.
 
 ## License
 
-MIT. See `LICENSE` and `NOTICE` (Strix is a separate project with its own license).
+MIT — see `LICENSE` and `NOTICE`. Strix is a separate project with its own license; SRCGuard
+contains none of its code.
