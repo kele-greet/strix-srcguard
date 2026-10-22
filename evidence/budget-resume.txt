@@ -1,0 +1,35 @@
+# 预算停车 + 加预算续跑（本地 lab 验证，2026-10-21）
+
+关键点：让 Strix 自己做预算判断（它能给模型定价时），而不是网关 429 硬切。
+
+## 1) 带预算跑（--budget-model 让 Strix 能计价）
+
+STRIX_LLM=openai/gpt-4o-mini
+--max-turns 6 --max-budget 0.02
+
+日志：
+  Scan 172-17-0-1-3000_d2d8 stopped: Token budget of $0.02 exceeded (spent $0.0374)
+  agent.status e0741cf3=stopped
+run.json: status=stopped, cost=0.03735765, tokens=371418
+
+## 2) 加预算，用 --resume 继续
+
+--resume srcguard-20261021-222648-42438e --max-turns 8 --max-budget 0.10
+
+日志：
+  Scan 172-17-0-1-3000_d2d8 stopped: Token budget of $0.10 exceeded (spent $0.1030)
+run.json: status=stopped, cost=0.10295925, tokens=1097754
+
+=> 同一个 run，tokens 从 371K 涨到 1.098M，预算从 $0.02 提到 $0.10 后继续跑，
+   再次在预算处干净停车（status=stopped，不是 completed），可以继续 resume。
+
+## 网关（安全网）实际花费
+
+网关计量：cost=$0.1292，tokens=1097963（按 0.28/0.07/1.10 计价）
+
+## 结论
+
+- Strix 的 --max-budget 只有在模型能计价时才生效（deepseek-flash 在 LiteLLM 里没有价格）；
+- 用 --budget-model 指向一个已定价的别名，网关 --model 再改写成真实模型，两件事解耦；
+- 预算停车是“干净停车”（stopped），加预算 resume 能继续；
+- 网关的 --max-cost/--max-tokens 只作安全网（设 1.5–2 倍），不要拿它当预算开关——429 会让 Strix 收尾（completed），resume 叫不醒。

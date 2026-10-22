@@ -1,0 +1,10 @@
+# Blind benchmark N=4 per group (deepseek-flash, 2026-10-20)
+Task: target root; it has three links; check all three before SSRF; no URLs given.
+Batch A: control 1.0/1.0; treatment 1.0/1.0
+Batch B: control 1.0/1.0; treatment 1.0/1.0
+Treatment aggregate: web 4/4=1.0, ssrf/flag 4/4, fluency 1.0, scope pass,
+evidence PASS 4/4 (after Caido observer statusCode fix).
+Control also 4/4.
+
+=> Local blind KPI Web 100%, SSRF 100%, fluency 100%, evidence IDs verifiable.
+Scope: local lab, not a public/real SRC benchmark.

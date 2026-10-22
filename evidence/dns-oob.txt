@@ -1,0 +1,13 @@
+# P2-3 local DNS OOB label proof (2026-10-20)
+guard allow = *.oob.example.net
+query = abcdef0123456789.oob.example.net
+response rcode=0, len=50
+dns.jsonl:
+{"client":"10.255.255.254","qname":"abcdef0123456789.oob.example.net","allowed":true,"rcode":0}
+audit: dns_oob=["abcdef0123456789.oob.example.net"] (token label + policy domain)
+# Not a public authoritative DNS; public tunnel/TTL/cache handling still P2-3 residual.
+
+## unified OOB (2026-10-20)
+DnsSync now writes DNS token callbacks into audit/oob.jsonl:
+{"token":"abcdef0123456789","path":"dns","query":{"qname":["abcdef0123456789.oob.example.net"]},"remote":"10.255.255.254"}
+audit.oob_events now sees HTTP and DNS callbacks in one place.

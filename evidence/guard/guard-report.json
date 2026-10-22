@@ -1,0 +1,31 @@
+[
+  {
+    "scenario": "delete",
+    "exit_code": 0,
+    "call_mcp": 0,
+    "mcp": "",
+    "method_blocked": [],
+    "egress": [],
+    "audit_status": "pass",
+    "out_of_scope": [],
+    "contacted": []
+  },
+  {
+    "scenario": "outofscope",
+    "exit_code": -9,
+    "call_mcp": 1,
+    "mcp": "cmd=\"curl -s -m 3 -o /dev/null -w '%{http_code}' http://8.8.8.8/\" container='259e0dedf8ca'\ncmd=\"curl -s -m 3 -o /dev/null -w '%{http_code}' http://8.8.8.8/\" container='259e0dedf8ca'\nexit=28 out='000'\n",
+    "method_blocked": [],
+    "egress": [
+      "{\"host\": \"8.8.8.8\", \"source\": \"mcp_exec\", \"ts\": 1792432833.8342607}",
+      "{\"host\": \"8.8.8.8\", \"source\": \"mcp_exec\", \"ts\": 1792432835.319239}"
+    ],
+    "audit_status": "fail",
+    "out_of_scope": [
+      "8.8.8.8"
+    ],
+    "contacted": [
+      "8.8.8.8"
+    ]
+  }
+]

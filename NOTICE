@@ -1,0 +1,14 @@
+SRCGuard
+========
+
+This project is an external safety/compliance harness around Strix
+(https://github.com/usestrix/strix, Strix 1.7.0).
+
+- It contains no Strix source code and does not modify Strix.
+- Strix is a separate project distributed under its own license; obtain and use
+  it according to its terms.
+- SRCGuard only reads Strix's run artifacts (reports, coverage, state) and
+  constrains the runtime from the outside (nftables cage, proxy observation,
+  MCP command guard, LLM gateway policy injection).
+
+Use SRCGuard only against systems you are explicitly authorized to test.

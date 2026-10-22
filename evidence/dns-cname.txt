@@ -1,0 +1,7 @@
+# P2-4 CNAME chain check (2026-10-20)
+allowed QNAME api.example.com
+dig CNAME -> internal.evil.test
+cname_allowed(internal.evil.test) = false
+=> no IP added to cage (FakeCage ips empty)
+unit: tests/test_dns_sync.py 5 passed
+# Still fixed refresh interval, not real DNS TTL; CNAME chain only one hop via dig.

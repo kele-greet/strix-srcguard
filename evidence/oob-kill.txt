@@ -1,0 +1,5 @@
+# P2-3 OOB -> kill linkage (2026-10-20)
+`--kill-on-oob` (default off): monitor reads audit/oob.jsonl.
+first token callback -> kill.trip("oob_callback:<token>") + kill.json
+default off: OOB callback does not stop the scan.
+tests: tests/test_oob_kill.py 2 passed.

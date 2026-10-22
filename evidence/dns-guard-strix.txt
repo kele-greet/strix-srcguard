@@ -1,0 +1,6 @@
+# Strix through Docker proxy + DNS guard (A/B, 2026-10-20)
+control/treatment MCP: exit=0 out='200'; audit pass
+docker.jsonl:
+{"event":"create_mutated","changes":["Dns -> 172.17.0.1","dropped CapAdd NET_ADMIN"]}
+dns.jsonl: readiness probe only (no target DNS; target is an IP)
+guard container stopped after run.

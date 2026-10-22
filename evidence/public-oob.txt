@@ -1,0 +1,6 @@
+# P2-3 public HTTP OOB (2026-10-20)
+OobServer local + Cloudflare quick tunnel (cloudflare/cloudflared:latest, --network host)
+tunnel: https://findings-turns-southern-blonde.trycloudflare.com
+GET public /<token> -> 200
+oob event: remote=127.0.0.1, X-Forwarded-For=182.118.238.167
+# public HTTP OOB works; authoritative DNS OOB still needs NS delegation/VPS.

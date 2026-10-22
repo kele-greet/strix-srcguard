@@ -1,0 +1,44 @@
+program: h1-example
+in_scope:
+  - "*.example.com"
+  - "api.example.com"
+  - "203.0.113.0/24"
+  - "2001:db8::/32"
+out_of_scope:
+  - "internal.example.com"
+  - "*.thirdparty.com"
+allow_third_party: []
+allow_spec_hosts: true
+
+ssrf_probe:
+  mode: limited
+  max_requests: 3
+  methods: [GET]
+  metadata_paths: ["/", "/latest/meta-data/"]
+  denied_paths: ["/latest/meta-data/iam/", "/latest/user-data"]
+  max_response_bytes: 4096
+  allow_token_fetch: false
+
+methods:
+  deny: [DELETE]
+  allow: [GET, HEAD, POST, PUT, PATCH]
+  max_body_bytes: 65536
+
+rate:
+  default_rps: 5
+  burst_rps: 50
+  burst_window_s: 10
+  max_connections: 20
+
+oob:
+  mode: self_hosted
+  domain: oob.example.net
+  allow_public_oast: false
+
+budgets:
+  max_turns: 150
+  max_budget_usd: 20
+  max_wall_clock_min: 180
+
+web_search:
+  enabled: false

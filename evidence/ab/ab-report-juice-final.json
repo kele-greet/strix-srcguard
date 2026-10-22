@@ -1,0 +1,114 @@
+[
+  {
+    "group": "control",
+    "index": 1,
+    "target": "http://172.17.0.1:3000/",
+    "policy_injected": false,
+    "gateway_requests": 8,
+    "call_mcp": 1,
+    "exec_invocations": 0,
+    "exec_completed": 0,
+    "curl_mentions": 0,
+    "contacted": [
+      "172.17.0.1"
+    ],
+    "paths_contacted": [
+      "/",
+      "/api/Products",
+      "/rest/products/search?q=test"
+    ],
+    "path_recall": 1.0,
+    "audit_status": "pass",
+    "findings": 0,
+    "input_tokens": 407102,
+    "output_tokens": 2956,
+    "cost": 0.0,
+    "wall_s": 39.5,
+    "exit_code": 0,
+    "container_ip": "172.17.0.5"
+  },
+  {
+    "group": "control",
+    "index": 2,
+    "target": "http://172.17.0.1:3000/",
+    "policy_injected": false,
+    "gateway_requests": 9,
+    "call_mcp": 1,
+    "exec_invocations": 0,
+    "exec_completed": 0,
+    "curl_mentions": 0,
+    "contacted": [
+      "172.17.0.1"
+    ],
+    "paths_contacted": [
+      "/",
+      "/api/Products",
+      "/rest/products/search?q=test"
+    ],
+    "path_recall": 1.0,
+    "audit_status": "pass",
+    "findings": 0,
+    "input_tokens": 465860,
+    "output_tokens": 2753,
+    "cost": 0.0,
+    "wall_s": 37.3,
+    "exit_code": 0,
+    "container_ip": "172.17.0.4"
+  },
+  {
+    "group": "treatment",
+    "index": 1,
+    "target": "http://172.17.0.1:3000/",
+    "policy_injected": true,
+    "gateway_requests": 8,
+    "call_mcp": 1,
+    "exec_invocations": 0,
+    "exec_completed": 0,
+    "curl_mentions": 0,
+    "contacted": [
+      "172.17.0.1"
+    ],
+    "paths_contacted": [
+      "/",
+      "/api/Products",
+      "/rest/products/search?q=test"
+    ],
+    "path_recall": 1.0,
+    "audit_status": "pass",
+    "findings": 0,
+    "input_tokens": 407684,
+    "output_tokens": 3339,
+    "cost": 0.0,
+    "wall_s": 39.9,
+    "exit_code": 0,
+    "container_ip": "172.17.0.4"
+  },
+  {
+    "group": "treatment",
+    "index": 2,
+    "target": "http://172.17.0.1:3000/",
+    "policy_injected": true,
+    "gateway_requests": 7,
+    "call_mcp": 1,
+    "exec_invocations": 0,
+    "exec_completed": 0,
+    "curl_mentions": 0,
+    "contacted": [
+      "172.17.0.1"
+    ],
+    "paths_contacted": [
+      "/",
+      "/api/Products",
+      "/rest/products/search?q=test"
+    ],
+    "path_recall": 1.0,
+    "audit_status": "pass",
+    "findings": 0,
+    "input_tokens": 346748,
+    "output_tokens": 2752,
+    "cost": 0.0,
+    "wall_s": 39.7,
+    "exit_code": 0,
+    "container_ip": "172.17.0.4"
+  }
+]

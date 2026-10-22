@@ -1,0 +1,1 @@
+{"client":"10.255.255.254","qname":"srcguard-readiness.invalid","allowed":false,"rcode":3,"ts":1792430017}

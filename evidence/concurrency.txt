@@ -1,0 +1,7 @@
+# P2-6 concurrent run lease (2026-10-20)
+RunRegistry file ~/.srcguard/runs.json, flock lock, pid leases.
+max=1: acquire a=true, b=false, a again=true, release a -> b=true.
+max=0: unlimited.
+stale pid 999999 pruned -> new acquire true.
+tests: tests/test_registry.py 3 passed.
+# This caps concurrent runs; it is not billing.

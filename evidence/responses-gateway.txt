@@ -1,0 +1,7 @@
+# P2-5 Responses API gateway test (2026-10-20)
+pytest -q tests/test_gateway.py -k responses
+3 passed
+- input string -> input[0] is system with <srcguard_policy>
+- instructions string -> policy appended to instructions
+- output[].function_call -> audit tool_calls; function_call_output AKIA redacted
+# Not run against a live DeepSeek Responses endpoint; Strix default is chat_completions.

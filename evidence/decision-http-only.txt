@@ -1,0 +1,4 @@
+# 2026-10-20 用户决定：HTTP-only OOB
+用户明确接受：公网 HTTP OOB 已可用；DNS 盲打只保留本地/不可用。
+P2-3 标记为“HTTP OOB 完成、DNS 权威不支持”，不再作为阻塞项。
+原因：Cloudflare 普通 DNS 记录不提供查询日志；没有公网 VPS/IP 或 NS 委派。

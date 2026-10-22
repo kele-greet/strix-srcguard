@@ -1,0 +1,12 @@
+# P2-4 dynamic wildcard IP sync (2026-10-20)
+unit: tests/test_dns_sync.py -> 2 passed
+only allowed qnames, dedup, thread stop
+
+live nft proof:
+cage allow [1.1.1.1], container 172.17.0.4
+ping 8.8.8.8 before allow_ip -> rc=1 (blocked)
+cage.allow_ip("8.8.8.8") -> True
+ping 8.8.8.8 after -> rc=0
+
+# Wired: launch starts DnsSync only when scope has a wildcard and --dns-guard.
+# Residual: TTL/rebinding/CNAME chain not checked; IPv6 dynamic IPs allowed via allow6.

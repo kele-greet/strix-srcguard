@@ -1,0 +1,7 @@
+# MCP / DOCKER_HOST consistency (2026-10-20)
+prepare_run MCP env preserves the real DOCKER_HOST (not the mutation proxy):
+DOCKER_HOST=tcp://remote-docker:2375 -> mcp-servers.json env DOCKER_HOST=tcp://remote-docker:2375
+- container creation goes through the mutation proxy
+- docker exec uses the same real daemon (proxy hijack not used)
+test: tests/test_preflight.py::test_mcp_preserves_real_docker_host
+# Proxy exec still drops hijacked stdout; MCP deliberately bypasses the proxy.

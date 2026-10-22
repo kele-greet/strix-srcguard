@@ -1,0 +1,7 @@
+# per-host nft rate proof (2026-10-20)
+# cage: allow 172.17.0.3, lab4 172.17.0.3, host_rate=2/s, burst=2
+# source: alpine 172.17.0.4; target: Juice Shop 172.17.0.3:3000
+# 12 sequential wget; output is wget exit code (0=200, 1=blocked/timeout)
+results: 0 0 1 0 0 1 0 0 1 0 0 1
+dmesg: srcguard-srcguard_rateproof4-rate ... SRC=172.17.0.4 DST=172.17.0.3 ... SYN
+dmesg: srcguard-srcguard_rateproof4-allow ... SRC=172.17.0.4 DST=172.17.0.3 ... SYN

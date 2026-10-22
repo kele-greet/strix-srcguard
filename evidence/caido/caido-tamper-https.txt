@@ -1,0 +1,8 @@
+# P2-2 HTTPS E2E (2026-10-20)
+local HTTPS target: 172.17.0.1:18443 (self-signed), via Caido 127.0.0.1:48081, curl -k
+tamper rule DELETE -> GET installed/enabled
+target events:
+  GET    -> method GET
+  DELETE -> method GET
+caido_tamper.jsonl: method_downgraded DELETE -> GET
+# Target never saw DELETE over TLS. This is still downgrade, not drop.

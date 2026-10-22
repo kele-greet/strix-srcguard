@@ -1,0 +1,5 @@
+# established bypass fix (2026-10-20)
+before: forward/input top `ct state established,related accept` accepted any old conntrack,
+        so an out-of-scope ping could succeed after container IP reuse.
+after: no generic established accept; allow/lab/oob log+accept first; per-host rate drop only NEW.
+verify: tests/test_cage.py 8 passed; 68 tests; CI OK.

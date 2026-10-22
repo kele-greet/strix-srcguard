@@ -1,0 +1,15 @@
+# 本地 lab / Juice Shop 最小 scope
+program: local-lab
+in_scope:
+  - "172.17.0.1"
+methods:
+  deny: [DELETE]
+  allow: [GET, HEAD, POST, PUT, PATCH]
+rate:
+  default_rps: 5
+  burst_rps: 50
+web_search:
+  enabled: false
+budgets:
+  max_turns: 20
+  max_budget_usd: 2

@@ -1,0 +1,54 @@
+[
+  {
+    "group": "control",
+    "index": 1,
+    "target": "http://172.17.0.1:3000/",
+    "policy_injected": false,
+    "gateway_requests": 8,
+    "call_mcp": 1,
+    "exec_invocations": 0,
+    "exec_completed": 0,
+    "curl_mentions": 0,
+    "contacted": [
+      "172.17.0.1"
+    ],
+    "paths_contacted": [
+      "/"
+    ],
+    "path_recall": 1.0,
+    "audit_status": "pass",
+    "findings": 0,
+    "input_tokens": 400723,
+    "output_tokens": 2350,
+    "cost": 0.0,
+    "wall_s": 33.2,
+    "exit_code": 0,
+    "container_ip": "172.17.0.5"
+  },
+  {
+    "group": "treatment",
+    "index": 1,
+    "target": "http://172.17.0.1:3000/",
+    "policy_injected": true,
+    "gateway_requests": 9,
+    "call_mcp": 1,
+    "exec_invocations": 0,
+    "exec_completed": 0,
+    "curl_mentions": 0,
+    "contacted": [
+      "172.17.0.1"
+    ],
+    "paths_contacted": [
+      "/"
+    ],
+    "path_recall": 1.0,
+    "audit_status": "pass",
+    "findings": 0,
+    "input_tokens": 461913,
+    "output_tokens": 2325,
+    "cost": 0.0,
+    "wall_s": 35.5,
+    "exit_code": 0,
+    "container_ip": "172.17.0.5"
+  }
+]

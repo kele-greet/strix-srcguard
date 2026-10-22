@@ -1,0 +1,27 @@
+# P2-1 DNS guard proof (2026-10-20)
+
+## forced DNS + allow/deny from a container
+Docker create through proxy with dns_server=172.17.0.1:
+  docker inspect HostConfig.Dns = ["172.17.0.1"]
+  container /etc/resolv.conf -> nameserver 172.17.0.1
+
+nslookup github.com  (allowlisted)
+  Server: 172.17.0.1
+  Name: github.com
+  Address: 20.205.243.166
+  rc=0
+
+nslookup evil.com    (not allowlisted)
+  ** server can't find evil.com: NXDOMAIN
+  rc=1
+
+dns.jsonl:
+{"client":"172.17.0.4","qname":"github.com","allowed":true,"rcode":0}
+{"client":"172.17.0.4","qname":"evil.com","allowed":false,"rcode":3}
+
+## cage: only DNS port to the guard is allowed
+cage allow=172.17.0.3, dns4=[]:
+  nslookup github.com -> connection timed out; rc=1
+cage allow=172.17.0.3, dns4=[172.17.0.1]:
+  nslookup github.com -> 20.205.243.166; rc=0
+dnsblocked=[] after readiness filter

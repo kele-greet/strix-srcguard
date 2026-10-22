@@ -1,0 +1,7 @@
+# P2-6 per-run cage isolation (2026-10-20)
+pytest -q tests/test_cage.py -k MultiRun
+1 passed
+run A: allow 1.1.1.1 -> A can ping 1.1.1.1, cannot ping 8.8.8.8
+run B: allow 8.8.8.8 -> B can ping 8.8.8.8, cannot ping 1.1.1.1
+tables srcguard_multi_a / srcguard_multi_b, containers sets separate
+# Quota/tenant accounting still not implemented.

@@ -1,0 +1,10 @@
+# P2-4 TTL/rebinding refresh (2026-10-20)
+unit: tests/test_dns_sync.py 4 passed
+- resolved {"api.example.com": {1.1.1.1, 2.2.2.2}}
+- refresh resolver -> {1.1.1.1}
+- 2.2.2.2 removed from cage; 1.1.1.1 kept
+
+live nft proof:
+allow_ip("8.8.8.8") -> ping rc=0
+remove_ip("8.8.8.8") -> ping rc=1
+# refresh uses a fixed interval, not DNS TTL; CNAME chain still not checked.

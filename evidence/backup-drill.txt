@@ -1,0 +1,5 @@
+# 2026-10-20 backup/restore drill
+tar -czf /tmp/srcguard-drill.tar.gz srcguard/srcguard srcguard/tests srcguard/pyproject.toml srcguard/README.md
+tar -xzf ... -C /tmp/srcguard-drill
+cd /tmp/srcguard-drill/srcguard && uv run pytest -q
+53 passed in 19.68s

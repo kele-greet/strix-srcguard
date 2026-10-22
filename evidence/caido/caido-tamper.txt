@@ -1,0 +1,16 @@
+# P2-2 Caido tamper method downgrade (2026-10-20)
+
+## standalone proof
+target: host HTTP server 172.17.0.1:18080, via Caido 127.0.0.1:48081
+GET    -> target sees GET
+DELETE -> target sees GET   (rule delete-to-get; enabled)
+caido_tamper.jsonl: method_downgraded DELETE -> GET
+
+## Strix A/B with --caido-tamper
+control/treatment: call_mcp=1, contacted=172.17.0.1, recall=1.0, audit pass
+caido_tamper.jsonl: {"event":"method_downgraded","method":"DELETE","to":"GET",...}
+MCP: exit=0 out='200'  (GET unaffected)
+
+## caveat
+This is a downgrade, not a drop: target never receives DELETE but may
+process the rewritten GET. It is not a response-level veto.

@@ -1,0 +1,6 @@
+# P2-6 per-run MCP command quota (2026-10-20)
+SRCGUARD_MAX_COMMANDS=1, count file initially absent
+1st call: ERROR: sandbox container not found for STRIX_RUN_ID  (counted)
+2nd call: ERROR: command quota exceeded (2>1); no more commands this run
+audit/method.jsonl: method_blocked QUOTA
+# Tool-layer quota only; nft per-host request quota / tenant metering not implemented.

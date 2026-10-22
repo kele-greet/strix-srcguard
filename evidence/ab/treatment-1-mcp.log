@@ -1,0 +1,2 @@
+cmd="curl -s -m 5 -o /dev/null -w '%{http_code}' http://172.17.0.1:3000/; curl -s -m 5 -o /dev/null -w '%{http_code}' http://172.17.0.1:3000/api/Products; curl -s -m 5 -o /dev/null -w '%{http_code}' 'http://172.17.0.1:3000/rest/products/search?q=test'" container='ba6a6bc39155'
+exit=0 out='200200200'

@@ -1,0 +1,7 @@
+curl -X DELETE http://target/ => ERROR: method DELETE blocked by SRCGuard policy
+curl -XDELETE http://target/ => ERROR: method DELETE blocked by SRCGuard policy
+curl --request=DELETE http://target/ => ERROR: method DELETE blocked by SRCGuard policy
+curl -X GET http://target/ => ERROR: sandbox container not found for STRIX_RUN_ID
+{"event": "method_blocked", "method": "DELETE", "cmd": "curl -X DELETE http://target/", "ts": 1792430430.4393928}
+{"event": "method_blocked", "method": "DELETE", "cmd": "curl -XDELETE http://target/", "ts": 1792430430.4394634}
+{"event": "method_blocked", "method": "DELETE", "cmd": "curl --request=DELETE http://target/", "ts": 1792430430.4394875}

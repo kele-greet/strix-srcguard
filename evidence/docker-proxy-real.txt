@@ -1,0 +1,30 @@
+# P2-1 Docker API proxy — real daemon proof (2026-10-20)
+
+## create mutation
+POST /v1.55/containers/create through proxy
+  body: Image=alpine:3.20, CapAdd=[NET_ADMIN, NET_RAW],
+        Mounts: src -> /workspace/repo, src -> /workspace
+response: 201 Created
+docker inspect:
+  CapAdd  = ["NET_RAW"]                 # NET_ADMIN removed
+  Mounts  = [("/workspace/repo", true), ("/workspace", null)]
+  # /workspace/repo ReadOnly=true; /workspace remains writable
+
+## privileged / host namespace rejection
+HostConfig {"Privileged": true}          -> 403 privileged containers are not allowed
+HostConfig {"NetworkMode": "host"}       -> 403 network mode 'host' is not allowed
+HostConfig {"PidMode": "host"}           -> 403 host PID namespace is not allowed
+
+## audit (audit/docker.jsonl)
+{"event": "create_mutated", "path": "/v1.55/containers/create",
+ "changes": ["dropped CapAdd NET_ADMIN", "mount /workspace/repo -> ReadOnly"]}
+{"event": "create_rejected", "reason": "privileged containers are not allowed"}
+{"event": "create_rejected", "reason": "network mode 'host' is not allowed"}
+{"event": "create_rejected", "reason": "host PID namespace is not allowed"}
+
+## Strix end-to-end with proxy
+ab_gateway --docker-proxy --runs 1 --lab-url http://172.17.0.1:3000/
+  control   call_mcp=1, contacted=172.17.0.1, recall=1.0, audit=pass
+  treatment call_mcp=1, contacted=172.17.0.1, recall=1.0, audit=pass
+  MCP output: exit=0 out='200'
+  docker.jsonl: create_mutated changes=["dropped CapAdd NET_ADMIN"]

@@ -1,0 +1,2 @@
+cmd="curl -s -m 5 -o /dev/null -w '%{http_code} ' http://172.17.0.1:37269/; curl -s -m 5 -o /dev/null -w '%{http_code} ' 'http://172.17.0.1:37269/api/users?id=1'; curl -s -m 5 -o /dev/null -w '%{http_code} ' 'http://172.17.0.1:37269/fetch?url=http://127.0.0.1:37269/internal/flag'; curl -s -m 5 -o /dev/null -w '%{http_code} ' http://172.17.0.1:37269/admin" container='4435f2c16b38'
+exit=0 out='200 200 200 403 '

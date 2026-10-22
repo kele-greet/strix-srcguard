@@ -1,0 +1,5 @@
+# per-host rate re-proof after removing top allow shortcut (2026-10-20)
+cage allow/lab 172.17.0.3, host_rate=2/s burst=2; alpine 172.17.0.4; 10x wget
+results: 0 0 1 0 0 1 0 0 1 0   # 2 pass, 1 drop repeating; no hang
+root cause fixed: per-host drop must be `ct state new`; otherwise established
+request ACKs were dropped and wget hung.

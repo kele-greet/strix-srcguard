@@ -1,0 +1,7 @@
+# P2-6 nft per-host total quota (2026-10-20)
+scope: max_requests_per_host: 2
+cage adds: ip daddr <host> ct state new counter comment "srcguard-host:<host>"
+live: 5 wget new connections -> host_counters {"172.17.0.3": 5}
+watcher: counter > limit -> kill reason host_request_quota:<ip>:5>2
+unit: tests/test_quota.py; tests/test_scope.py
+# This is nft counter + monitor trip, not an nft drop; tenant metering not implemented.

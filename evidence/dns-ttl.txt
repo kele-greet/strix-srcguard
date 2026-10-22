@@ -1,0 +1,8 @@
+# P2-4 real TTL from DNS answer (2026-10-20)
+dig @guard +noall +answer api.example.com
+  api.example.com. 300 IN CNAME edge.example.net.
+  edge.example.net. 120 IN A 203.0.113.9
+DnsSync uses min TTL=120 for refresh scheduling, ips/cnames from same answer.
+tests: tests/test_dns_sync.py 7 passed (dig parser + ttl_map).
+# refresh still resolves via host resolver; TTL schedules refresh, not a full
+# authoritative TTL cache. CNAME check uses the same answer.

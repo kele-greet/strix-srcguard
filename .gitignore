@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+p0-gate/
+bin/
+srcguard_runs/
+*.tgz
+.env
+*.pem
+*.key
+strix-*
+Dockerfile.local

@@ -1,0 +1,7 @@
+{
+  "info": {"name": "example"},
+  "item": [
+    {"name": "list", "request": {"url": {"raw": "https://api.example.com/items"}}},
+    {"name": "other", "request": {"url": {"raw": "https://api.example.com/x"}}}
+  ]
+}

@@ -1,0 +1,4 @@
+# P2-4 allow CIDR constraint (2026-10-20)
+allowed qname resolves 203.0.113.9; scope CIDR 10.0.0.0/8
+=> IP not added to cage (allowed_cidrs filter)
+unit: tests/test_dns_sync.py 8 passed

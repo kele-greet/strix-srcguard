@@ -1,0 +1,8 @@
+# docker0 input-chain proof (2026-10-20)
+# cage: allow 172.17.0.3 only, host python server 172.17.0.1:18080
+lab4=[]                 -> wget rc=1 (blocked by input chain)
+lab4=['172.17.0.1']     -> wget rc=0 (explicit lab exception)
+# custom bridge (br-*) proof (2026-10-20)
+network: srcguard-testnet 172.21.0.0/16, container 172.21.0.2, host gateway 172.21.0.1:18080
+lab4=[]             -> wget rc=1 (blocked)
+lab4=['172.21.0.1'] -> wget rc=0 (allowed)

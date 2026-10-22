@@ -1,0 +1,7 @@
+# Strix through Docker proxy: artifacts copied from p0-gate/ab/docker-proxy (2026-10-20)
+control-1/ab-docker-proxy-control-1-*/audit/docker.jsonl:
+{"event":"create_mutated","path":"/v1.55/containers/create","changes":["dropped CapAdd NET_ADMIN"],"name":null}
+treatment-1/ab-docker-proxy-treatment-1-*/audit/docker.jsonl:
+{"event":"create_mutated","path":"/v1.55/containers/create","changes":["dropped CapAdd NET_ADMIN"],"name":null}
+control-1 mcp.log:     exit=0 out='200'
+treatment-1 mcp.log:   exit=0 out='200'
