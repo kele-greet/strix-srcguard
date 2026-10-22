@@ -149,6 +149,65 @@ strix_runs/<name>/{penetration_test_report.md, vulnerabilities/, coverage.json}
 
 ---
 
+## Using SRCGuard with Strix
+
+### Where does Strix go?
+
+SRCGuard does **not** bundle Strix. Get the Strix 1.7.0 binary from its releases
+(<https://github.com/usestrix/strix/releases>) and put it anywhere on the machine, e.g.:
+
+```bash
+mkdir -p ~/tools && mv strix-1.7.0-linux-x86_64 ~/tools/strix-1.7.0
+chmod +x ~/tools/strix-1.7.0
+```
+
+Never commit the binary (it is in `.gitignore` as `strix-*`).
+
+### How SRCGuard uses it
+
+Two equivalent ways to point SRCGuard at the binary:
+
+```bash
+# per run
+python3 -m srcguard.cli run ... --strix-bin ~/tools/strix-1.7.0 --launch
+
+# or via environment
+export STRIX_BIN=~/tools/strix-1.7.0
+python3 -m srcguard.cli run ... --launch
+```
+
+Under the hood SRCGuard launches (and prints with `--dry-run`):
+
+```
+strix -n -t <target> --scan-mode quick --max-turns N --max-budget M       --instruction-file <run>/instruction.md       --mcp-config <run>/mcp-servers.json
+```
+
+with `STRIX_RUN_ID`, `HOME`, `LLM_API_BASE` (the gateway) and the MCP shim set in the child
+environment. The sandbox image (`ghcr.io/usestrix/strix-sandbox:1.3.0`) is pulled by Strix
+itself on first run.
+
+### Verify the wrapper stays external
+
+```bash
+./check_strix.sh
+```
+
+If you keep a local `strix-main` checkout next to this repo, the script verifies its zero-diff
+hash; without it the script just reports that there is nothing to compare.
+
+---
+
+## Data hygiene (this repository is desensitized)
+
+- No real-target findings are published here. `evidence/` contains only local-lab proofs
+  (Juice Shop / localhost), and the real-target runs were kept out of the public snapshot.
+- Run directories (`srcguard_runs/`), gateway logs, cookies and API keys are gitignored and
+  must stay private.
+- If you publish your own results, redact hostnames, tokens and unpatched vulnerability details
+  until the program owner has fixed them.
+
+---
+
 ## Repository layout
 
 ```
